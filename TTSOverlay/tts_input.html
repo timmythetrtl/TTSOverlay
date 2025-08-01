@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TTS Input</title>
+</head>
+<body>
+    <h2>Send TTS Message</h2>
+    <form id="ttsForm">
+        <input type="text" id="ttsInput" placeholder="Type your message" size="40" autocomplete="off" />
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        const form = document.getElementById("ttsForm");
+        const input = document.getElementById("ttsInput");
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const message = input.value.trim();
+            if (!message) return; // Skip empty input
+
+            input.value = ""; // Clear immediately for user feedback
+
+            try {
+                await fetch("http://192.168.1.63:8000", {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: message
+                });
+            } catch (err) {
+
+            }
+        };
+    </script>
+</body>
+</html>
