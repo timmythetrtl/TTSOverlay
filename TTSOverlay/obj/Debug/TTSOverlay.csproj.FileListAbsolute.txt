@@ -1,0 +1,17 @@
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\bin\Debug\TTSOverlay.exe.config
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\bin\Debug\TTSOverlay.exe
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\bin\Debug\TTSOverlay.pdb
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay.csproj.AssemblyReference.cache
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\MainWindow.g.cs
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\App.g.cs
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay_MarkupCompile.cache
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\MainWindow.baml
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay.g.resources
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay.Properties.Resources.resources
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay.csproj.GenerateResource.cache
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay.csproj.CoreCompileInputs.cache
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay.exe
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay.pdb
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\TTSOverlay.exe.config
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\InputWindow.baml
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Debug\InputWindow.g.cs
