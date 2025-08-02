@@ -21,10 +21,26 @@ namespace TTSOverlay
         [DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
+        //Focus Hotkey
         private const int HOTKEY_ID = 9000;
         private const uint MOD_CONTROL = 0x0002;
         private const uint MOD_SHIFT = 0x0004;
         private const uint VK_I = 0x49;
+
+        //Phrase Hotkeys
+        private const int HOTKEY_F1 = 9001;
+        private const int HOTKEY_F2 = 9002;
+        private const int HOTKEY_F3 = 9003;
+        private const int HOTKEY_F4 = 9004;
+        private const int HOTKEY_F5 = 9005;
+
+        private const uint VK_F1 = 0x70;
+        private const uint VK_F2 = 0x71;
+        private const uint VK_F3 = 0x72;
+        private const uint VK_F4 = 0x73;
+        private const uint VK_F5 = 0x74;
+
+
 
         private HwndSource _source;
         private InputWindow inputWindow;
@@ -133,13 +149,33 @@ namespace TTSOverlay
 
                 // Register Ctrl + Shift + I
                 RegisterHotKey(helper.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, VK_I);
+
+                // The others
+                RegisterHotKey(helper.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, VK_I);
+                RegisterHotKey(helper.Handle, HOTKEY_F1, 0, VK_F1);
+                RegisterHotKey(helper.Handle, HOTKEY_F2, 0, VK_F2);
+                RegisterHotKey(helper.Handle, HOTKEY_F3, 0, VK_F3);
+                RegisterHotKey(helper.Handle, HOTKEY_F4, 0, VK_F4);
+                RegisterHotKey(helper.Handle, HOTKEY_F5, 0, VK_F5);
+
             };
 
             Closing += (s, e) =>
             {
                 _source.RemoveHook(HwndHook);
                 var helper = new WindowInteropHelper(this);
+
+                // Unregister Ctrl + Shift + I
                 UnregisterHotKey(helper.Handle, HOTKEY_ID);
+
+                //The others
+                UnregisterHotKey(helper.Handle, HOTKEY_ID);
+                UnregisterHotKey(helper.Handle, HOTKEY_F1);
+                UnregisterHotKey(helper.Handle, HOTKEY_F2);
+                UnregisterHotKey(helper.Handle, HOTKEY_F3);
+                UnregisterHotKey(helper.Handle, HOTKEY_F4);
+                UnregisterHotKey(helper.Handle, HOTKEY_F5);
+
             };
 
 
@@ -183,6 +219,21 @@ namespace TTSOverlay
             HiddenInput.Focus();
         }
         */
+        private bool ContainsJapanese(string text)
+        {
+            foreach (char c in text)
+            {
+                if ((c >= 0x3040 && c <= 0x309F) || // Hiragana
+                    (c >= 0x30A0 && c <= 0x30FF) || // Katakana
+                    (c >= 0x4E00 && c <= 0x9FBF))   // Kanji (CJK Unified Ideographs)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
 
         private void SpeakWithAnimation(string text)
         {
@@ -192,7 +243,26 @@ namespace TTSOverlay
             talkingFrameIndex = 0;
             idleTimer.Stop();
 
-            talkingTimer = new DispatcherTimer();
+
+            // Replace later when you do selectable voices.
+            if (ContainsJapanese(text))
+            {
+                try
+                {
+                    synth.SelectVoiceByHints(VoiceGender.Female, VoiceAge.Adult, 0, new System.Globalization.CultureInfo("ja-JP"));
+                }
+                catch
+                {
+                    MessageBox.Show("Japanese voice not installed. Please install a Japanese TTS voice.");
+                }
+            }
+            else
+            {
+                synth.SelectVoice("Microsoft David Desktop");
+
+            }
+
+                talkingTimer = new DispatcherTimer();
             talkingTimer.Interval = TimeSpan.FromMilliseconds(100);
             talkingTimer.Tick += (s, e) =>
             {
@@ -301,12 +371,35 @@ namespace TTSOverlay
             if (msg == WM_HOTKEY)
             {
                 int id = wParam.ToInt32();
-                if (id == HOTKEY_ID)
+                handled = true;
+
+                switch (id)
                 {
-                    OnHotKeyPressed();
-                    handled = true;
+                    //The first one is the Ctrl + Shift + I
+                    case HOTKEY_ID:
+                        OnHotKeyPressed();
+                        break;
+                    case HOTKEY_F1:
+                        TriggerRandomLineFromFile("Assets/Hotkeys/f1.txt");
+                        break;
+                    case HOTKEY_F2:
+                        TriggerRandomLineFromFile("Assets/Hotkeys/f2.txt");
+                        break;
+                    case HOTKEY_F3:
+                        TriggerRandomLineFromFile("Assets/Hotkeys/f3.txt");
+                        break;
+                    case HOTKEY_F4:
+                        TriggerRandomLineFromFile("Assets/Hotkeys/f4.txt");
+                        break;
+                    case HOTKEY_F5:
+                        TriggerRandomLineFromFile("Assets/Hotkeys/f5.txt");
+                        break;
+                    default:
+                        handled = false;
+                        break;
                 }
             }
+
 
             return IntPtr.Zero;
         }
@@ -335,6 +428,27 @@ namespace TTSOverlay
             });
         }
 
+        private void TriggerRandomLineFromFile(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath)) return;
+
+                var lines = File.ReadAllLines(filePath);
+                var validLines = Array.FindAll(lines, line => !string.IsNullOrWhiteSpace(line));
+
+                if (validLines.Length > 0)
+                {
+                    var random = new Random();
+                    string line = validLines[random.Next(validLines.Length)];
+                    ReceiveExternalInput(line); // This queues and speaks it
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reading file {filePath}: {ex.Message}");
+            }
+        }
 
 
 

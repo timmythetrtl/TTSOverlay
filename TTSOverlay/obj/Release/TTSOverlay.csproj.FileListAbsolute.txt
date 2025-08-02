@@ -14,3 +14,4 @@ C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.cspro
 C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.csproj.CoreCompileInputs.cache
 C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.exe
 C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.pdb
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.exe.config
