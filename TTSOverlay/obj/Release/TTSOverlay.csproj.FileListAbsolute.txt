@@ -15,3 +15,7 @@ C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.cspro
 C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.exe
 C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.pdb
 C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay.exe.config
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\SettingsWindow.baml
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\SettingsWindow.g.cs
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\GeneratedInternalTypeHelper.g.cs
+C:\Users\Timothy\source\repos\TTSOverlay\TTSOverlay\obj\Release\TTSOverlay_MarkupCompile.lref

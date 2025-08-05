@@ -1,0 +1,49 @@
+Some notes:
+
+A button to start it from downbeat
+Making the downbeat selector combo box
+
+Shrimple debug mode where it displays the sprite number to the right of the gif
+
+
+Adjust character width and height through manual numbers
+
+Making a sprite load in at the proper size and aspect ratio scaling.
+
+Making sure that the default looping dance doesn't desync at any point. If another animation plays it still keeps track of what frame it should be on.
+
+Next is some overhauls to the way mainwindow is displayed
+
+You want to be able to edit it super easily in the ui!
+
+After figuring out file integration with OBS and that whole mess. Saving downbeat data and regular/half-time/quarter-time to each preset!
+
+Really just presets. Those seem important. This might be easier now with the whole character and text box positioning thing. You also need to figure out the whole textbox thing. That's a whole can of worms.
+
+Bug where the bpm ion the clickable text box doesn't adjust to the proper displayed bpm on the right
+
+How to tell when code is written by ChatGPT
+
+Bonzi Buddy research
+
+Professor Helper
+
+Some sort of indicator that I'm typing?
+
+Changing size
+
+Make the font and textbox look even more like hypnospace
+
+Multiple idle animations
+
+Deformatting enters?
+
+Sprite editor like what you made for gamemaker
+
+STREAM STUFF
+
+Figure out VLC and OBS
+
+Chill background music playlist
+
+Raid someone I fought

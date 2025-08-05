@@ -1,0 +1,117 @@
+﻿<Window x:Class="TTSOverlay.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TTSOverlay"
+        Title="Settings" Height="600" Width="300"
+        WindowStartupLocation="CenterScreen"
+        Closed="Window_Closed">
+
+
+    <Window.Resources>
+        <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </Window.Resources>
+
+
+
+
+    <ScrollViewer>
+        <StackPanel Margin="10">
+            <TextBlock FontSize="18" FontWeight="Bold" Margin="0 0 0 10">Overlay Settings</TextBlock>
+
+            <TextBlock>Character X</TextBlock>
+            <Slider Minimum="0" Maximum="1920" Value="{Binding CharacterX, Mode=TwoWay}"/>
+            
+
+            <TextBlock>Character Y</TextBlock>
+            <Slider Minimum="0" Maximum="1080" Value="{Binding CharacterY, Mode=TwoWay}"/>
+
+            <TextBlock>Character Width</TextBlock>
+            <Slider Minimum="10" Maximum="1000" Value="{Binding CharacterWidth, Mode=TwoWay}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+            <TextBlock Text="{Binding CharacterWidth}" Width="60"/>
+
+            <TextBlock>Character Height</TextBlock>
+            <Slider Minimum="10" Maximum="1000" Value="{Binding CharacterHeight, Mode=TwoWay}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+            <TextBlock Text="{Binding CharacterHeight}" Width="60"/>
+
+            <TextBlock>Speech X</TextBlock>
+            <Slider Minimum="0" Maximum="1920" Value="{Binding SpeechX, Mode=TwoWay}"/>
+
+            <TextBlock>Speech Y</TextBlock>
+            <Slider Minimum="0" Maximum="1080" Value="{Binding SpeechY, Mode=TwoWay}"/>
+
+            <TextBlock>Speech Font Size</TextBlock>
+            <Slider Minimum="10" Maximum="100" Value="{Binding SpeechFontSize, Mode=TwoWay}"/>
+
+            <TextBlock>Speech Max Width</TextBlock>
+            <Slider Minimum="50" Maximum="1000" Value="{Binding SpeechMaxWidth, Mode=TwoWay}"/>
+
+            <Button Content="Load Idle Sprites" Click="LoadIdleSprites_Click" Margin="0 10 0 0"/>
+            <Button Content="Load Talking Sprites" Click="LoadTalkingSprites_Click" Margin="0 5 0 0"/>
+
+            <!-- Toggle for BPM Mode -->
+            <CheckBox Content="BPM Mode"
+          IsChecked="{Binding IsBpmMode, Mode=TwoWay}"
+          Margin="0 10 0 5"/>
+
+            <!-- Input Panel -->
+            <TextBlock FontWeight="Bold">Sprite Speed</TextBlock>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <!-- Either FPS or BPM Input -->
+                <Slider Minimum="1" Maximum="200"
+            Value="{Binding SpriteFPS, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            TickFrequency="0.1" IsSnapToTickEnabled="False"
+            Width="150" Margin="0 0 10 0"
+            IsEnabled="{Binding IsBpmMode, Converter={StaticResource InverseBooleanConverter}}"/>
+
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+             Text="{Binding SpriteFPS, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+             IsEnabled="{Binding IsBpmMode, Converter={StaticResource InverseBooleanConverter}}"
+             HorizontalContentAlignment="Right"/>
+
+             <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                 Text="{Binding InputBPM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"
+                 IsEnabled="{Binding IsBpmMode}"
+                 HorizontalContentAlignment="Right"/>
+
+
+                <TextBlock Text="{Binding SpriteSpeedDisplay}" VerticalAlignment="Center" />
+            </StackPanel>
+
+
+
+            <TextBlock Margin="0 10 0 0" FontWeight="Bold">Downbeat Frame</TextBlock>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBox Width="50"
+             Text="{Binding DownbeatFrameIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+             VerticalContentAlignment="Center"
+             HorizontalContentAlignment="Right"/>
+                <TextBlock Text="/"
+               VerticalAlignment="Center"
+               Margin="5,0"/>
+                <TextBlock Text="{Binding IdleSpriteCount}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Button Content="Reset to Downbeat"
+                Margin="0 10 0 0"
+                Click="ResetToDownbeat_Click"/>
+
+
+
+            <TextBlock Margin="0 10 0 0" FontWeight="Bold">Playback Speed Mode</TextBlock>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <ComboBox SelectedValue="{Binding PlaybackSpeedMode, Mode=TwoWay}" Width="150" Margin="0 0 0 10"
+                SelectedValuePath="Content">
+                    <ComboBoxItem Content="{x:Static local:PlaybackSpeedMode.Regular}" />
+                    <ComboBoxItem Content="{x:Static local:PlaybackSpeedMode.HalfTime}" />
+                    <ComboBoxItem Content="{x:Static local:PlaybackSpeedMode.QuarterTime}" />
+                </ComboBox>
+            </StackPanel>
+
+
+
+        </StackPanel>
+        
+        
+        
+    </ScrollViewer>
+</Window>

@@ -1,25 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Speech.Synthesis;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+
 
 namespace TTSOverlay
 {
     public partial class MainWindow : Window
     {
+
+
+
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
 
         [DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+
 
         //Focus Hotkey
         private const int HOTKEY_ID = 9000;
@@ -40,6 +50,13 @@ namespace TTSOverlay
         private const uint VK_F4 = 0x73;
         private const uint VK_F5 = 0x74;
 
+        //Image restart hotkey
+        private const int HOTKEY_F6 = 9006;
+
+        private const uint VK_F6 = 0x75;
+
+
+        //rendering variables
 
 
         private HwndSource _source;
@@ -49,31 +66,48 @@ namespace TTSOverlay
         List<BitmapImage> talkingSprites = new List<BitmapImage>();
         List<BitmapImage> idleSprites = new List<BitmapImage>();
 
-        DispatcherTimer talkingTimer;
-        DispatcherTimer idleTimer;
-        DispatcherTimer idlePauseTimer;
-
-        int idleLoopPauseMs = 1000; // How long to linger on first frame (in ms)
-        bool isIdlePaused = false;
-
         int idleFrameIndex = 0;
         int talkingFrameIndex = 0;
+
+        
 
         SpeechSynthesizer synth;
         bool isWaitingToReturnToIdle = false;
 
         bool isSpeaking = false;
 
+       
+
+        private TimeSpan lastFrameTime = TimeSpan.Zero;
+
         private Queue<string> messageQueue = new Queue<string>();
 
-
+        private AppViewModel _viewModel;
+        private double frameIntervalMs;
 
         public MainWindow()
         {
+
             InitializeComponent();
             StartHttpListener();
 
+            _viewModel = new AppViewModel();
+            DataContext = _viewModel;
 
+            frameIntervalMs = 1000.0 / _viewModel.SpriteFPS;
+
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+
+            this.Left = 0;
+            this.Top = 0;
+            this.Width = SystemParameters.PrimaryScreenWidth;
+            this.Height = SystemParameters.PrimaryScreenHeight;
+
+
+            var settingsWindow = new SettingsWindow(_viewModel);
+            settingsWindow.Show();
+
+            //AdjustWindowSizeToFitContent();
 
 
             // Load idle sprites
@@ -94,40 +128,7 @@ namespace TTSOverlay
 
             CharacterImage.Source = idleSprites[0];
 
-            // Setup idle animation
-            idleTimer = new DispatcherTimer();
-            idleTimer.Interval = TimeSpan.FromMilliseconds(100);
-            idleTimer.Tick += (s, e) =>
-            {
-                if (isIdlePaused)
-                    return;
-
-                // Show current frame
-                CharacterImage.Source = idleSprites[idleFrameIndex];
-
-                // Advance frame
-                idleFrameIndex++;
-
-                // When loop completes, pause on frame 0
-                if (idleFrameIndex >= idleSprites.Count)
-                {
-                    idleFrameIndex = 0;
-                    isIdlePaused = true;
-
-
-                    idlePauseTimer = new DispatcherTimer();
-                    idlePauseTimer.Interval = TimeSpan.FromMilliseconds(idleLoopPauseMs);
-                    idlePauseTimer.Tick += (s2, e2) =>
-                    {
-                        isIdlePaused = false;
-                        idlePauseTimer.Stop();
-
-                        CharacterImage.Source = idleSprites[0];
-                    };
-                    idlePauseTimer.Start();
-                }
-            };
-            idleTimer.Start();
+            
 
 
             // Setup TTS
@@ -157,6 +158,9 @@ namespace TTSOverlay
                 RegisterHotKey(helper.Handle, HOTKEY_F3, 0, VK_F3);
                 RegisterHotKey(helper.Handle, HOTKEY_F4, 0, VK_F4);
                 RegisterHotKey(helper.Handle, HOTKEY_F5, 0, VK_F5);
+                RegisterHotKey(helper.Handle, HOTKEY_F6, 0, VK_F6);
+
+                CompositionTarget.Rendering += OnRendering;
 
             };
 
@@ -175,6 +179,10 @@ namespace TTSOverlay
                 UnregisterHotKey(helper.Handle, HOTKEY_F3);
                 UnregisterHotKey(helper.Handle, HOTKEY_F4);
                 UnregisterHotKey(helper.Handle, HOTKEY_F5);
+                UnregisterHotKey(helper.Handle, HOTKEY_F6);
+
+                CompositionTarget.Rendering -= OnRendering;
+                synth.Dispose();
 
             };
 
@@ -186,39 +194,75 @@ namespace TTSOverlay
             return new BitmapImage(new Uri(Path.GetFullPath(path)));
         }
 
-
-        /*
-        private void HiddenInput_KeyDown(object sender, KeyEventArgs e)
+        public void LoadIdleSprites(string[] filePaths)
         {
-            if (e.Key == Key.Enter)
+            idleSprites.Clear();
+            foreach (var file in filePaths)
+                idleSprites.Add(LoadImage(file));
+
+            idleFrameIndex = 0;
+            if (idleSprites.Count > 0)
+                CharacterImage.Source = idleSprites[0];
+
+            _viewModel.IdleSpriteCount = idleSprites.Count;
+
+        }
+
+        public void LoadTalkingSprites(string[] filePaths)
+        {
+            talkingSprites.Clear();
+            foreach (var file in filePaths)
+                talkingSprites.Add(LoadImage(file));
+
+        }
+
+        private void OnRendering(object? sender, EventArgs e)
+        {
+            var renderingArgs = (RenderingEventArgs)e;
+            var currentTime = renderingArgs.RenderingTime;
+
+            if (lastFrameTime == TimeSpan.Zero)
             {
+                lastFrameTime = currentTime;
+                return;
+            }
+
+            while ((currentTime - lastFrameTime).TotalMilliseconds >= frameIntervalMs)
+            {
+                lastFrameTime += TimeSpan.FromMilliseconds(frameIntervalMs);
 
                 if (isSpeaking)
-                    return;
-
-                string text = HiddenInput.Text.Trim();
-                if (!string.IsNullOrEmpty(text))
-                {
-                    HiddenInput.Clear();
-                    if (isSpeaking)
-                    {
-                        messageQueue.Enqueue(text);
-                    }
-                    else
-                    {
-                        isSpeaking = true;
-                        SpeakWithAnimation(text);
-                    }
-                }
-
+                    AdvanceTalkingFrame();
+                else
+                    AdvanceIdleFrame();
             }
         }
 
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+
+
+        private void AdvanceIdleFrame()
         {
-            HiddenInput.Focus();
+            if (idleSprites.Count == 0) return;
+
+            idleFrameIndex = (idleFrameIndex + 1) % idleSprites.Count;
+            CharacterImage.Source = idleSprites[idleFrameIndex];
         }
-        */
+
+        private void AdvanceTalkingFrame()
+        {
+            if (talkingSprites.Count == 0) return;
+
+            talkingFrameIndex = (talkingFrameIndex + 1) % talkingSprites.Count;
+            CharacterImage.Source = talkingSprites[talkingFrameIndex];
+
+            // When animation loops once, check if we need to stop
+            if (talkingFrameIndex == talkingSprites.Count - 1 && isWaitingToReturnToIdle)
+            {
+                isWaitingToReturnToIdle = false;
+                StopSpeaking();
+                TrySpeakNextMessage();
+            }
+        }
         private bool ContainsJapanese(string text)
         {
             foreach (char c in text)
@@ -241,8 +285,8 @@ namespace TTSOverlay
             SpeechText.Visibility = Visibility.Visible;
 
             talkingFrameIndex = 0;
-            idleTimer.Stop();
-
+            isSpeaking = true;
+            isWaitingToReturnToIdle = false;
 
             // Replace later when you do selectable voices.
             if (ContainsJapanese(text))
@@ -262,35 +306,15 @@ namespace TTSOverlay
 
             }
 
-                talkingTimer = new DispatcherTimer();
-            talkingTimer.Interval = TimeSpan.FromMilliseconds(100);
-            talkingTimer.Tick += (s, e) =>
-            {
-                CharacterImage.Source = talkingSprites[talkingFrameIndex];
-                talkingFrameIndex++;
-
-                if (talkingFrameIndex >= talkingSprites.Count)
-                {
-                    talkingFrameIndex = 0;
-
-                    if (isWaitingToReturnToIdle)
-                    {
-                        talkingTimer.Stop();
-                        SpeechText.Visibility = Visibility.Collapsed;
-
-                        idleFrameIndex = 0;
-                        CharacterImage.Source = idleSprites[0];
-                        idleTimer.Start();
-                        isWaitingToReturnToIdle = false;
-
-                        isSpeaking = false;
-                        TrySpeakNextMessage(); // Attempt to speak the next message
-                    }
-                }
-            };
-
-            talkingTimer.Start();
             synth.SpeakAsync(text);
+        }
+
+        private void StopSpeaking()
+        {
+            isSpeaking = false;
+            idleFrameIndex = 0;
+            CharacterImage.Source = idleSprites[idleFrameIndex];
+            SpeechText.Visibility = Visibility.Collapsed;
         }
 
 
@@ -317,7 +341,7 @@ namespace TTSOverlay
             {
                 messageQueue.Enqueue(chunk);
             }
-
+            
             TrySpeakNextMessage();
         }
 
@@ -361,6 +385,58 @@ namespace TTSOverlay
             SpeakWithAnimation(nextMessage);
         }
 
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(_viewModel.CharacterX) ||
+                e.PropertyName == nameof(_viewModel.CharacterY) ||
+                e.PropertyName == nameof(_viewModel.CharacterWidth) ||
+                e.PropertyName == nameof(_viewModel.CharacterHeight) ||
+                e.PropertyName == nameof(_viewModel.SpeechX) ||
+                e.PropertyName == nameof(_viewModel.SpeechY) ||
+                e.PropertyName == nameof(_viewModel.SpeechMaxWidth))
+            {
+                //AdjustWindowSizeToFitContent();
+                //SpeakWithAnimation("Hello World!");
+            }
+            if (e.PropertyName == nameof(_viewModel.SpriteFPS) 
+                || e.PropertyName == nameof(_viewModel.PlaybackSpeedMode))
+            {
+                // Update the frame interval whenever the FPS changes
+                frameIntervalMs = (1000.0 / _viewModel.SpriteFPS) / _viewModel.PlaybackSpeedMultiplier;
+            }
+
+
+        }
+
+
+        public void ResetToDownbeat()
+        {
+            int frameIndex = _viewModel.DownbeatFrameIndex;
+
+            if (isSpeaking)
+            {
+                if (talkingSprites.Count > 0)
+                {
+                    talkingFrameIndex = frameIndex % talkingSprites.Count;
+                    CharacterImage.Source = talkingSprites[talkingFrameIndex];
+                }
+            }
+            else
+            {
+                if (idleSprites.Count > 0)
+                {
+                    idleFrameIndex = frameIndex % idleSprites.Count;
+                    CharacterImage.Source = idleSprites[idleFrameIndex];
+                }
+            }
+        }
+
+
+        public int GetCurrentFrameIndex()
+        {
+            return isSpeaking ? talkingFrameIndex : idleFrameIndex;
+        }
+
 
 
 
@@ -393,6 +469,11 @@ namespace TTSOverlay
                         break;
                     case HOTKEY_F5:
                         TriggerRandomLineFromFile("Assets/Hotkeys/f5.txt");
+                        break;
+                    case HOTKEY_F6:
+                        ResetToDownbeat();
+                        break;
+
                         break;
                     default:
                         handled = false;
@@ -496,6 +577,7 @@ namespace TTSOverlay
         }
 
 
-
     }
+
+
 }
