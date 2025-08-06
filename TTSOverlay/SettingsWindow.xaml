@@ -97,15 +97,14 @@
 
 
 
-            <TextBlock Margin="0 10 0 0" FontWeight="Bold">Playback Speed Mode</TextBlock>
+            <TextBlock Margin="0 10 0 0" FontWeight="Bold">Beats Per Loop</TextBlock>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <ComboBox SelectedValue="{Binding PlaybackSpeedMode, Mode=TwoWay}" Width="150" Margin="0 0 0 10"
-                SelectedValuePath="Content">
-                    <ComboBoxItem Content="{x:Static local:PlaybackSpeedMode.Regular}" />
-                    <ComboBoxItem Content="{x:Static local:PlaybackSpeedMode.HalfTime}" />
-                    <ComboBoxItem Content="{x:Static local:PlaybackSpeedMode.QuarterTime}" />
-                </ComboBox>
+                <TextBox Width="60"
+             Text="{Binding PlaybackSpeedMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+             VerticalContentAlignment="Center"
+             HorizontalContentAlignment="Right"/>
             </StackPanel>
+
 
 
 

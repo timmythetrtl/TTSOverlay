@@ -70,6 +70,7 @@ namespace TTSOverlay
             }
         }
 
+        //This is a pretty good example. A nice... simple button. Althought you might want to ask what the appviewmodel actually does...
         private void ResetToDownbeat_Click(object sender, RoutedEventArgs e)
         {
             if (Application.Current.MainWindow is MainWindow mainWindow)

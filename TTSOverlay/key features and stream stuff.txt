@@ -1,7 +1,38 @@
-Some notes:
+Today:
+Figure out if you're going with one large monitor or selecting monitors.
+If you select a monitor you're probably gonna have a contingency plan in place where it just automatically goes with what's available.
+More organizing. 
 
-A button to start it from downbeat
-Making the downbeat selector combo box
+++ + * - -- buttons for size and such
+Aspect Ratio scaling
+The logic will probably be something like... when you load in a new image stretch everything to the aspect ratio of the first image loaded
+
+Make it so that right when you start up the app it reads everything it needs to. The FPS and all that jazz is updated
+
+Ability to press enter to input.
+
+Some notes (might contain stuff you've already finished, go through it):
+
+
+I think I'm gonna need it to lock to a specific display. soon
+
+I wonder if there's something that can quickly divy out your functions so it's less cluttered.
+
+A universal frame incrementer! So that the idle frame never goes off sync!
+
+Ask Nick about detecting malicious software
+
+Unfortunately I think you're gonna have to do some text box adjustments first...
+
+Have it select from your PCs font list?
+
+Maybe some sound stuff?
+
+"At the 5ms mark hit the downbeat"
+
+After figuring out file integration with OBS and that whole mess. Saving downbeat data and regular/half-time/quarter-time to each preset!
+
+If that seems hard doing the tap to create tempo integrated in with the start from downbeat feature could be a quick fix for the moment. unless that's hard two...
 
 Shrimple debug mode where it displays the sprite number to the right of the gif
 
@@ -16,7 +47,7 @@ Next is some overhauls to the way mainwindow is displayed
 
 You want to be able to edit it super easily in the ui!
 
-After figuring out file integration with OBS and that whole mess. Saving downbeat data and regular/half-time/quarter-time to each preset!
+
 
 Really just presets. Those seem important. This might be easier now with the whole character and text box positioning thing. You also need to figure out the whole textbox thing. That's a whole can of worms.
 
@@ -42,8 +73,8 @@ Sprite editor like what you made for gamemaker
 
 STREAM STUFF
 
-Figure out VLC and OBS
-
 Chill background music playlist
 
 Raid someone I fought
+
+Lights camera action from sonic mania works REALLY well with tenna

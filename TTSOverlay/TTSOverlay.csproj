@@ -61,12 +61,17 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AppViewModel.cs" />
+    <Compile Include="FileName.cs" />
+    <Compile Include="HotkeyManager.cs" />
     <Compile Include="InputWindow.xaml.cs">
       <Generator>MSBuild:Compile</Generator>
     </Compile>
+    <Compile Include="NotepadBpmWatcher.cs" />
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SpeechManager.cs" />
+    <Compile Include="SpriteManager.cs" />
     <Page Include="InputWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -106,6 +111,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Resource Include="Fonts\munro-small.ttf" />
+    <Resource Include="Fonts\munro-narrow.ttf" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

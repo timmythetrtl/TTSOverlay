@@ -74,11 +74,28 @@ namespace TTSOverlay
             get => _idleSpriteCount;
             set
             {
-                _idleSpriteCount = value < 1 ? 1 : value; // Avoid divide-by-zero
-                OnPropertyChanged(nameof(IdleSpriteCount));
-                OnPropertyChanged(nameof(SpriteSpeedDisplay));
+                int newCount = value < 1 ? 1 : value; // avoid divide-by-zero
+                if (_idleSpriteCount != newCount)
+                {
+                    _idleSpriteCount = newCount;
+
+                    if (IsBpmMode)
+                    {
+                        // Recalculate FPS to maintain the current BPM
+                        SpriteFPS = (InputBPM * _idleSpriteCount) / 60.0;
+                    }
+                    else
+                    {
+                        // Recalculate BPM to match the new FPS and frame count
+                        InputBPM = Math.Round((SpriteFPS * _idleSpriteCount) / 60.0, 2);
+                    }
+
+                    OnPropertyChanged(nameof(IdleSpriteCount));
+                    OnPropertyChanged(nameof(SpriteSpeedDisplay));
+                }
             }
         }
+
 
         public string SpriteSpeedDisplay
         {
@@ -137,9 +154,10 @@ namespace TTSOverlay
             }
         }
 
-        private PlaybackSpeedMode _playbackSpeedMode = PlaybackSpeedMode.Regular;
-        public PlaybackSpeedMode PlaybackSpeedMode
+        private int _playbackSpeedMode = 1;
+        public int PlaybackSpeedMode
         {
+            
             get => _playbackSpeedMode;
             set
             {
@@ -155,16 +173,24 @@ namespace TTSOverlay
         {
             get
             {
-                return PlaybackSpeedMode switch
-                {
-                    PlaybackSpeedMode.HalfTime => 0.5,
-                    PlaybackSpeedMode.QuarterTime => 0.25,
-                    _ => 1.0,
-                };
+                return 1.0/(double)PlaybackSpeedMode;
             }
         }
 
 
+        private bool _isSpeechBoxVisible = true;
+        public bool IsSpeechBoxVisible
+        {
+            get => _isSpeechBoxVisible;
+            set
+            {
+                if (_isSpeechBoxVisible != value)
+                {
+                    _isSpeechBoxVisible = value;
+                    OnPropertyChanged(nameof(IsSpeechBoxVisible));
+                }
+            }
+        }
 
 
 

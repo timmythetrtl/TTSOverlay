@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Media;
 using System.Runtime.InteropServices;
 using System.Speech.Synthesis;
 using System.Threading.Tasks;
@@ -15,68 +16,15 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-
 namespace TTSOverlay
 {
     public partial class MainWindow : Window
     {
-
-
-
-        [DllImport("user32.dll")]
-        private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
-
-        [DllImport("user32.dll")]
-        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-
-
-
-        //Focus Hotkey
-        private const int HOTKEY_ID = 9000;
-        private const uint MOD_CONTROL = 0x0002;
-        private const uint MOD_SHIFT = 0x0004;
-        private const uint VK_I = 0x49;
-
-        //Phrase Hotkeys
-        private const int HOTKEY_F1 = 9001;
-        private const int HOTKEY_F2 = 9002;
-        private const int HOTKEY_F3 = 9003;
-        private const int HOTKEY_F4 = 9004;
-        private const int HOTKEY_F5 = 9005;
-
-        private const uint VK_F1 = 0x70;
-        private const uint VK_F2 = 0x71;
-        private const uint VK_F3 = 0x72;
-        private const uint VK_F4 = 0x73;
-        private const uint VK_F5 = 0x74;
-
-        //Image restart hotkey
-        private const int HOTKEY_F6 = 9006;
-
-        private const uint VK_F6 = 0x75;
-
-
         //rendering variables
 
-
-        private HwndSource _source;
         private InputWindow inputWindow;
 
-
-        List<BitmapImage> talkingSprites = new List<BitmapImage>();
-        List<BitmapImage> idleSprites = new List<BitmapImage>();
-
-        int idleFrameIndex = 0;
-        int talkingFrameIndex = 0;
-
-        
-
         SpeechSynthesizer synth;
-        bool isWaitingToReturnToIdle = false;
-
-        bool isSpeaking = false;
-
-       
 
         private TimeSpan lastFrameTime = TimeSpan.Zero;
 
@@ -84,6 +32,21 @@ namespace TTSOverlay
 
         private AppViewModel _viewModel;
         private double frameIntervalMs;
+
+        private DispatcherTimer bpmFileTimer;
+
+        private Stopwatch stopwatch = new Stopwatch();
+        private TimeSpan lastUpdateTime = TimeSpan.Zero;
+
+        private NotepadBpmWatcher? _notepadWatcher;
+
+        private SpriteManager spriteManager;
+        private HotkeyManager hotkeyManager;
+
+        private string phrasesFile = "Assets/phrases.txt";
+        private string variableFile = "Assets/current.txt";
+
+        private SpeechSynthesizer synthesizer;
 
         public MainWindow()
         {
@@ -94,6 +57,9 @@ namespace TTSOverlay
             _viewModel = new AppViewModel();
             DataContext = _viewModel;
 
+            spriteManager = new SpriteManager();
+            synthesizer = new SpeechSynthesizer();
+
             frameIntervalMs = 1000.0 / _viewModel.SpriteFPS;
 
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
@@ -103,166 +69,69 @@ namespace TTSOverlay
             this.Width = SystemParameters.PrimaryScreenWidth;
             this.Height = SystemParameters.PrimaryScreenHeight;
 
-
             var settingsWindow = new SettingsWindow(_viewModel);
             settingsWindow.Show();
 
-            //AdjustWindowSizeToFitContent();
+            //Load Idle and talking sprites
+            spriteManager.LoadIdleSprites(Directory.GetFiles("Assets/Idle", "*.png"));
+            spriteManager.LoadTalkingSprites(Directory.GetFiles("Assets/Talking", "*.png"));
 
-
-            // Load idle sprites
-            string idlePath = "Assets/Idle";
-            var idleFiles = Directory.GetFiles(idlePath, "*.png");
-            foreach (var file in idleFiles)
-            {
-                idleSprites.Add(LoadImage(file));
-            }
-
-            // Load talking sprites
-            string talkingPath = "Assets/Talking";
-            var talkingFiles = Directory.GetFiles(talkingPath, "*.png");
-            foreach (var file in talkingFiles)
-            {
-                talkingSprites.Add(LoadImage(file));
-            }
-
-            CharacterImage.Source = idleSprites[0];
-
-            
-
+            CharacterImage.Source = spriteManager.CurrentSprite;
 
             // Setup TTS
             synth = new SpeechSynthesizer();
             synth.SpeakCompleted += Synth_SpeakCompleted;
 
-            // Auto-focus hidden input
-            //Loaded += (s, e) => HiddenInput.Focus();
-
             inputWindow = new InputWindow(this);
             inputWindow.Show();
 
+            string notepadFile = @"E:\TUNA\metadatastuff.txt";
+            _notepadWatcher = new NotepadBpmWatcher(notepadFile, _viewModel, Dispatcher);
 
             Loaded += (s, e) =>
             {
-                var helper = new WindowInteropHelper(this);
-                _source = HwndSource.FromHwnd(helper.Handle);
-                _source.AddHook(HwndHook);
+                hotkeyManager = new HotkeyManager(this);
+                hotkeyManager.HotkeyPressed += OnHotkeyPressed;
+                hotkeyManager.RegisterHotkeys();
 
-                // Register Ctrl + Shift + I
-                RegisterHotKey(helper.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, VK_I);
 
-                // The others
-                RegisterHotKey(helper.Handle, HOTKEY_ID, MOD_CONTROL | MOD_SHIFT, VK_I);
-                RegisterHotKey(helper.Handle, HOTKEY_F1, 0, VK_F1);
-                RegisterHotKey(helper.Handle, HOTKEY_F2, 0, VK_F2);
-                RegisterHotKey(helper.Handle, HOTKEY_F3, 0, VK_F3);
-                RegisterHotKey(helper.Handle, HOTKEY_F4, 0, VK_F4);
-                RegisterHotKey(helper.Handle, HOTKEY_F5, 0, VK_F5);
-                RegisterHotKey(helper.Handle, HOTKEY_F6, 0, VK_F6);
-
+                // Remove CompositionTarget.Rendering or DispatcherTimer
                 CompositionTarget.Rendering += OnRendering;
-
+                stopwatch.Start();
             };
 
             Closing += (s, e) =>
             {
-                _source.RemoveHook(HwndHook);
-                var helper = new WindowInteropHelper(this);
+                hotkeyManager.UnregisterHotkeys();
 
-                // Unregister Ctrl + Shift + I
-                UnregisterHotKey(helper.Handle, HOTKEY_ID);
-
-                //The others
-                UnregisterHotKey(helper.Handle, HOTKEY_ID);
-                UnregisterHotKey(helper.Handle, HOTKEY_F1);
-                UnregisterHotKey(helper.Handle, HOTKEY_F2);
-                UnregisterHotKey(helper.Handle, HOTKEY_F3);
-                UnregisterHotKey(helper.Handle, HOTKEY_F4);
-                UnregisterHotKey(helper.Handle, HOTKEY_F5);
-                UnregisterHotKey(helper.Handle, HOTKEY_F6);
-
+                stopwatch.Stop();
                 CompositionTarget.Rendering -= OnRendering;
+
                 synth.Dispose();
 
+                _notepadWatcher?.Dispose();
             };
-
-
         }
 
-        private BitmapImage LoadImage(string path)
-        {
-            return new BitmapImage(new Uri(Path.GetFullPath(path)));
-        }
-
-        public void LoadIdleSprites(string[] filePaths)
-        {
-            idleSprites.Clear();
-            foreach (var file in filePaths)
-                idleSprites.Add(LoadImage(file));
-
-            idleFrameIndex = 0;
-            if (idleSprites.Count > 0)
-                CharacterImage.Source = idleSprites[0];
-
-            _viewModel.IdleSpriteCount = idleSprites.Count;
-
-        }
-
-        public void LoadTalkingSprites(string[] filePaths)
-        {
-            talkingSprites.Clear();
-            foreach (var file in filePaths)
-                talkingSprites.Add(LoadImage(file));
-
-        }
+        private double accumulatedMs = 0;
 
         private void OnRendering(object? sender, EventArgs e)
         {
-            var renderingArgs = (RenderingEventArgs)e;
-            var currentTime = renderingArgs.RenderingTime;
+            var now = stopwatch.Elapsed;
+            double elapsedMs = (now - lastUpdateTime).TotalMilliseconds;
+            lastUpdateTime = now;
 
-            if (lastFrameTime == TimeSpan.Zero)
+            accumulatedMs += elapsedMs;
+
+            double interval = (1000.0 / _viewModel.SpriteFPS) / _viewModel.PlaybackSpeedMultiplier;
+
+            while (accumulatedMs >= interval)
             {
-                lastFrameTime = currentTime;
-                return;
-            }
-
-            while ((currentTime - lastFrameTime).TotalMilliseconds >= frameIntervalMs)
-            {
-                lastFrameTime += TimeSpan.FromMilliseconds(frameIntervalMs);
-
-                if (isSpeaking)
-                    AdvanceTalkingFrame();
-                else
-                    AdvanceIdleFrame();
+                CharacterImage.Source = spriteManager.AdvanceFrame();
+                accumulatedMs -= interval;
             }
         }
 
-
-
-        private void AdvanceIdleFrame()
-        {
-            if (idleSprites.Count == 0) return;
-
-            idleFrameIndex = (idleFrameIndex + 1) % idleSprites.Count;
-            CharacterImage.Source = idleSprites[idleFrameIndex];
-        }
-
-        private void AdvanceTalkingFrame()
-        {
-            if (talkingSprites.Count == 0) return;
-
-            talkingFrameIndex = (talkingFrameIndex + 1) % talkingSprites.Count;
-            CharacterImage.Source = talkingSprites[talkingFrameIndex];
-
-            // When animation loops once, check if we need to stop
-            if (talkingFrameIndex == talkingSprites.Count - 1 && isWaitingToReturnToIdle)
-            {
-                isWaitingToReturnToIdle = false;
-                StopSpeaking();
-                TrySpeakNextMessage();
-            }
-        }
         private bool ContainsJapanese(string text)
         {
             foreach (char c in text)
@@ -284,9 +153,8 @@ namespace TTSOverlay
             SpeechText.Text = text;
             SpeechText.Visibility = Visibility.Visible;
 
-            talkingFrameIndex = 0;
-            isSpeaking = true;
-            isWaitingToReturnToIdle = false;
+            spriteManager.SetSpeakingState(true);
+
 
             // Replace later when you do selectable voices.
             if (ContainsJapanese(text))
@@ -309,23 +177,14 @@ namespace TTSOverlay
             synth.SpeakAsync(text);
         }
 
-        private void StopSpeaking()
-        {
-            isSpeaking = false;
-            idleFrameIndex = 0;
-            CharacterImage.Source = idleSprites[idleFrameIndex];
-            SpeechText.Visibility = Visibility.Collapsed;
-        }
-
-
         private void Synth_SpeakCompleted(object sender, SpeakCompletedEventArgs e)
         {
+            SpeechText.Visibility = Visibility.Collapsed;
             Dispatcher.Invoke(() =>
             {
-                isWaitingToReturnToIdle = true;
+                spriteManager.SetSpeakingState(false);
             });
         }
-
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -370,18 +229,16 @@ namespace TTSOverlay
 
                 start += length;
             }
-
             return chunks;
         }
 
 
         private void TrySpeakNextMessage()
         {
-            if (isSpeaking || messageQueue.Count == 0)
+            if (spriteManager.IsSpeaking || messageQueue.Count == 0)
                 return;
 
             string nextMessage = messageQueue.Dequeue();
-            isSpeaking = true;
             SpeakWithAnimation(nextMessage);
         }
 
@@ -395,11 +252,11 @@ namespace TTSOverlay
                 e.PropertyName == nameof(_viewModel.SpeechY) ||
                 e.PropertyName == nameof(_viewModel.SpeechMaxWidth))
             {
-                //AdjustWindowSizeToFitContent();
-                //SpeakWithAnimation("Hello World!");
+
             }
-            if (e.PropertyName == nameof(_viewModel.SpriteFPS) 
-                || e.PropertyName == nameof(_viewModel.PlaybackSpeedMode))
+            if (e.PropertyName == nameof(_viewModel.SpriteFPS) ||
+                e.PropertyName == nameof(_viewModel.PlaybackSpeedMode) ||
+                e.PropertyName == nameof(_viewModel.IdleSpriteCount))
             {
                 // Update the frame interval whenever the FPS changes
                 frameIntervalMs = (1000.0 / _viewModel.SpriteFPS) / _viewModel.PlaybackSpeedMultiplier;
@@ -407,84 +264,42 @@ namespace TTSOverlay
 
 
         }
+        public int GetCurrentFrameIndex()
+        {
+            return spriteManager.GetCurrentFrameIndex();
+        }
 
+        public void LoadIdleSprites(string[] files)
+        {
+            spriteManager.LoadIdleSprites(files);
+            CharacterImage.Source = spriteManager.CurrentSprite;
+
+            _viewModel.IdleSpriteCount = files.Length;
+        }
+
+        public void LoadTalkingSprites(string[] files)
+        {
+            spriteManager.LoadTalkingSprites(files);
+        }
 
         public void ResetToDownbeat()
         {
-            int frameIndex = _viewModel.DownbeatFrameIndex;
-
-            if (isSpeaking)
-            {
-                if (talkingSprites.Count > 0)
-                {
-                    talkingFrameIndex = frameIndex % talkingSprites.Count;
-                    CharacterImage.Source = talkingSprites[talkingFrameIndex];
-                }
-            }
-            else
-            {
-                if (idleSprites.Count > 0)
-                {
-                    idleFrameIndex = frameIndex % idleSprites.Count;
-                    CharacterImage.Source = idleSprites[idleFrameIndex];
-                }
-            }
+            spriteManager.ResetToDownbeat(_viewModel.DownbeatFrameIndex);
         }
 
-
-        public int GetCurrentFrameIndex()
+        private void OnHotkeyPressed(int id)
         {
-            return isSpeaking ? talkingFrameIndex : idleFrameIndex;
-        }
-
-
-
-
-        private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            const int WM_HOTKEY = 0x0312;
-
-            if (msg == WM_HOTKEY)
+            switch (id)
             {
-                int id = wParam.ToInt32();
-                handled = true;
-
-                switch (id)
-                {
-                    //The first one is the Ctrl + Shift + I
-                    case HOTKEY_ID:
-                        OnHotKeyPressed();
-                        break;
-                    case HOTKEY_F1:
-                        TriggerRandomLineFromFile("Assets/Hotkeys/f1.txt");
-                        break;
-                    case HOTKEY_F2:
-                        TriggerRandomLineFromFile("Assets/Hotkeys/f2.txt");
-                        break;
-                    case HOTKEY_F3:
-                        TriggerRandomLineFromFile("Assets/Hotkeys/f3.txt");
-                        break;
-                    case HOTKEY_F4:
-                        TriggerRandomLineFromFile("Assets/Hotkeys/f4.txt");
-                        break;
-                    case HOTKEY_F5:
-                        TriggerRandomLineFromFile("Assets/Hotkeys/f5.txt");
-                        break;
-                    case HOTKEY_F6:
-                        ResetToDownbeat();
-                        break;
-
-                        break;
-                    default:
-                        handled = false;
-                        break;
-                }
+                case 9000: OnHotKeyPressed(); break;
+                case 9001: TriggerRandomLineFromFile("Assets/Hotkeys/f1.txt"); break;
+                case 9002: TriggerRandomLineFromFile("Assets/Hotkeys/f2.txt"); break;
+                case 9003: TriggerRandomLineFromFile("Assets/Hotkeys/f3.txt"); break;
+                case 9004: TriggerRandomLineFromFile("Assets/Hotkeys/f4.txt"); break;
+                case 9005: TriggerRandomLineFromFile("Assets/Hotkeys/f5.txt"); break;
+                case 9006: spriteManager.ResetToDownbeat(_viewModel.DownbeatFrameIndex); break;
             }
-
-
-            return IntPtr.Zero;
         }
-
         private void OnHotKeyPressed()
         {
             Dispatcher.Invoke(() =>
@@ -508,7 +323,6 @@ namespace TTSOverlay
                 inputWindow.FocusTextBox();
             });
         }
-
         private void TriggerRandomLineFromFile(string filePath)
         {
             try
@@ -530,9 +344,6 @@ namespace TTSOverlay
                 MessageBox.Show($"Error reading file {filePath}: {ex.Message}");
             }
         }
-
-
-
         private void StartHttpListener()
         {
             HttpListener listener = new HttpListener();
@@ -575,9 +386,5 @@ namespace TTSOverlay
                 }
             });
         }
-
-
     }
-
-
 }
