@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:TTSOverlay"
-        Title="Settings" Height="600" Width="300"
+        Title="Settings" Height="790" Width="495"
         WindowStartupLocation="CenterScreen"
         Closed="Window_Closed">
 
@@ -18,32 +18,87 @@
         <StackPanel Margin="10">
             <TextBlock FontSize="18" FontWeight="Bold" Margin="0 0 0 10">Overlay Settings</TextBlock>
 
-            <TextBlock>Character X</TextBlock>
-            <Slider Minimum="0" Maximum="1920" Value="{Binding CharacterX, Mode=TwoWay}"/>
+            <CheckBox Content="Edit Mode (Enable Dragging)"
+          IsChecked="{Binding IsEditMode, Mode=TwoWay}"
+          Margin="0 0 0 10"/>
+
+          
+
+
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock xml:space="preserve" Text="Character X: " />
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                    Text="{Binding CharacterX, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                    HorizontalContentAlignment="Left"/>
+            </StackPanel>
+            <Slider Minimum="0" Maximum="{Binding TotalScreenWidth}" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding CharacterX, Mode=TwoWay}"/>
+
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock xml:space="preserve" Text="Character Y: " />
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                    Text="{Binding CharacterY, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                    HorizontalContentAlignment="Left"/>     
+            </StackPanel>
+            <Slider Minimum="0" Maximum="{Binding TotalScreenHeight}" Value="{Binding CharacterY, Mode=TwoWay}"/>
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock xml:space="preserve" Text="Speech X: " />
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                    Text="{Binding SpeechX, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                    HorizontalContentAlignment="Left"/>
+            </StackPanel>
+            <Slider Minimum="0" Maximum="{Binding TotalScreenHeight}" Value="{Binding SpeechX, Mode=TwoWay}"/>
+
             
 
-            <TextBlock>Character Y</TextBlock>
-            <Slider Minimum="0" Maximum="1080" Value="{Binding CharacterY, Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock xml:space="preserve" Text="Speech Y: " />
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                    Text="{Binding SpeechY, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                    HorizontalContentAlignment="Left"/>
+            </StackPanel>
+            <Slider Minimum="0" Maximum="{Binding TotalScreenHeight}" Value="{Binding SpeechY, Mode=TwoWay}"/>
 
-            <TextBlock>Character Width</TextBlock>
-            <Slider Minimum="10" Maximum="1000" Value="{Binding CharacterWidth, Mode=TwoWay}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-            <TextBlock Text="{Binding CharacterWidth}" Width="60"/>
 
-            <TextBlock>Character Height</TextBlock>
-            <Slider Minimum="10" Maximum="1000" Value="{Binding CharacterHeight, Mode=TwoWay}" TickFrequency="1" IsSnapToTickEnabled="True"/>
-            <TextBlock Text="{Binding CharacterHeight}" Width="60"/>
+            <CheckBox Content="Scale By Aspect Ratio"
+                IsChecked="{Binding IsAspectRatioScalingMode, Mode=TwoWay}"
+                Margin="0 15 0 10"/>
 
-            <TextBlock>Speech X</TextBlock>
-            <Slider Minimum="0" Maximum="1920" Value="{Binding SpeechX, Mode=TwoWay}"/>
 
-            <TextBlock>Speech Y</TextBlock>
-            <Slider Minimum="0" Maximum="1080" Value="{Binding SpeechY, Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock xml:space="preserve" Text="Character Width: " />
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                    Text="{Binding CharacterWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                    HorizontalContentAlignment="Left"/>
+            </StackPanel>
+            <Slider Minimum="0" Maximum="{Binding TotalScreenHeight}" Value="{Binding CharacterWidth, Mode=TwoWay}"/>
 
-            <TextBlock>Speech Font Size</TextBlock>
-            <Slider Minimum="10" Maximum="100" Value="{Binding SpeechFontSize, Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock xml:space="preserve" Text="Character Height: " />
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                    Text="{Binding CharacterHeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                    HorizontalContentAlignment="Left"/>
+            </StackPanel>
+            <Slider Minimum="0" Maximum="{Binding TotalScreenHeight}" Value="{Binding CharacterHeight, Mode=TwoWay}"/>
 
-            <TextBlock>Speech Max Width</TextBlock>
-            <Slider Minimum="50" Maximum="1000" Value="{Binding SpeechMaxWidth, Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock xml:space="preserve" Text="Speech Font Size: " />
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                    Text="{Binding SpeechFontSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    HorizontalContentAlignment="Left"/>
+            </StackPanel>
+            <Slider Minimum="0" Maximum="{Binding TotalScreenHeight}" Value="{Binding SpeechFontSize, Mode=TwoWay}"/>
+
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock xml:space="preserve" Text="SpeechMaxWidth: " />
+                <TextBox Width="60" Margin="0 0 10 0" VerticalContentAlignment="Center"
+                Text="{Binding SpeechMaxWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                HorizontalContentAlignment="Left"/>
+            </StackPanel>
+            <Slider Minimum="0" Maximum="{Binding TotalScreenHeight}" Value="{Binding SpeechMaxWidth, Mode=TwoWay}"/>
 
             <Button Content="Load Idle Sprites" Click="LoadIdleSprites_Click" Margin="0 10 0 0"/>
             <Button Content="Load Talking Sprites" Click="LoadTalkingSprites_Click" Margin="0 5 0 0"/>

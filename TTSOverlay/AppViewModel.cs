@@ -1,17 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Data;
+using System.Windows.Forms;
+
 
 namespace TTSOverlay
 {
-
-    public enum PlaybackSpeedMode
-    {
-        Regular,
-        HalfTime,
-        QuarterTime
-    }
 
 
     public class InverseBooleanConverter : IValueConverter
@@ -36,16 +32,66 @@ namespace TTSOverlay
         private double _characterX, _characterY, _characterWidth = 150, _characterHeight = 250;
         private double _speechX, _speechY, _speechFontSize = 40, _speechMaxWidth = 500;
 
+        private bool _isUpdatingCharacterSize = false;
+
         public double CharacterX { get => _characterX; set { _characterX = value; OnPropertyChanged(nameof(CharacterX)); } }
         public double CharacterY { get => _characterY; set { _characterY = value; OnPropertyChanged(nameof(CharacterY)); } }
-        public double CharacterWidth { get => _characterWidth; set { _characterWidth = value; OnPropertyChanged(nameof(CharacterWidth)); } }
-        public double CharacterHeight { get => _characterHeight; set { _characterHeight = value; OnPropertyChanged(nameof(CharacterHeight)); } }
+        
+
+        public double CharacterWidth
+        {
+            get => _characterWidth;
+            set
+            {
+                if (_characterWidth != value)
+                {
+                    _characterWidth = value;
+
+                    if (IsAspectRatioScalingMode && !_isUpdatingCharacterSize)
+                    {
+                        _isUpdatingCharacterSize = true;
+                        _characterHeight = _characterWidth / aspectRatio;
+                        OnPropertyChanged(nameof(CharacterHeight));
+                        _isUpdatingCharacterSize = false;
+                    }
+
+                    OnPropertyChanged(nameof(CharacterWidth));
+                }
+            }
+        }
+
+        public double CharacterHeight
+        {
+            get => _characterHeight;
+            set
+            {
+                if (_characterHeight != value)
+                {
+                    _characterHeight = value;
+
+                    if (IsAspectRatioScalingMode && !_isUpdatingCharacterSize)
+                    {
+                        _isUpdatingCharacterSize = true;
+                        _characterWidth = _characterHeight * aspectRatio;
+                        OnPropertyChanged(nameof(CharacterWidth));
+                        _isUpdatingCharacterSize = false;
+                    }
+
+                    OnPropertyChanged(nameof(CharacterHeight));
+                }
+            }
+        }
+
         public double SpeechX { get => _speechX; set { _speechX = value; OnPropertyChanged(nameof(SpeechX)); } }
         public double SpeechY { get => _speechY; set { _speechY = value; OnPropertyChanged(nameof(SpeechY)); } }
         public double SpeechFontSize { get => _speechFontSize; set { _speechFontSize = value; OnPropertyChanged(nameof(SpeechFontSize)); } }
         public double SpeechMaxWidth { get => _speechMaxWidth; set { _speechMaxWidth = value; OnPropertyChanged(nameof(SpeechMaxWidth)); } }
 
         private double _spriteFPS = 10.00;
+
+        public double aspectRatio = 1.0;
+
+
         public double SpriteFPS
         {
             get => _spriteFPS;
@@ -110,7 +156,7 @@ namespace TTSOverlay
 
 
 
-        private int _downbeatFrameIndex = 0;
+        private int _downbeatFrameIndex = 1;
         public int DownbeatFrameIndex
         {
             get => _downbeatFrameIndex;
@@ -126,7 +172,7 @@ namespace TTSOverlay
         }
 
 
-        private bool _isBpmMode = false;
+        private bool _isBpmMode = true;
         public bool IsBpmMode
         {
             get => _isBpmMode;
@@ -137,6 +183,53 @@ namespace TTSOverlay
                 OnPropertyChanged(nameof(SpriteSpeedDisplay));
             }
         }
+
+        private bool _isEditMode = true;
+        public bool IsEditMode
+        {
+            get => _isEditMode;
+            set
+            {
+                _isEditMode = value;
+                OnPropertyChanged(nameof(IsEditMode));
+            }
+        }
+
+        private bool _isAspectRatioScalingMode = true;
+        public bool IsAspectRatioScalingMode
+        {
+            get => _isAspectRatioScalingMode;
+            set
+            {
+                _isAspectRatioScalingMode = value;
+                OnPropertyChanged(nameof(IsAspectRatioScalingMode));
+            }
+        }
+
+        // REMEMBER THESE ARE OPTIONS!!! 
+        // IMPORTANT!!!
+        public int TotalScreenWidth { get; private set; }
+        public int TotalScreenHeight { get; private set; }
+
+        public AppViewModel()
+        {
+            UpdateScreenBounds();
+        }
+
+        public void UpdateScreenBounds()
+        {
+            var bounds = Screen.AllScreens
+                .Select(s => s.Bounds)
+                .Aggregate((b1, b2) => System.Drawing.Rectangle.Union(b1, b2));
+
+            TotalScreenWidth = bounds.Width;
+            TotalScreenHeight = bounds.Height;
+
+            OnPropertyChanged(nameof(TotalScreenWidth));
+            OnPropertyChanged(nameof(TotalScreenHeight));
+        }
+
+
 
         private double _inputBpm = 120.0;
         public double InputBPM
@@ -149,7 +242,11 @@ namespace TTSOverlay
                 {
                     SpriteFPS = (_inputBpm * IdleSpriteCount) / 60.0;
                 }
-                OnPropertyChanged(nameof(InputBPM));
+                else
+                {
+                    _inputBpm = 60.0 * SpriteFPS / IdleSpriteCount;
+                }
+                    OnPropertyChanged(nameof(InputBPM));
                 OnPropertyChanged(nameof(SpriteSpeedDisplay));
             }
         }
@@ -178,6 +275,8 @@ namespace TTSOverlay
         }
 
 
+
+
         private bool _isSpeechBoxVisible = true;
         public bool IsSpeechBoxVisible
         {
@@ -191,6 +290,8 @@ namespace TTSOverlay
                 }
             }
         }
+
+
 
 
 

@@ -1,21 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Media;
-
-using System.Runtime.InteropServices;
-using System.Speech.Synthesis;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 
 namespace TTSOverlay
 {
@@ -48,6 +34,7 @@ namespace TTSOverlay
 
         public void LoadIdleSprites(string[] filePaths)
         {
+
             idleSprites.Clear();
             foreach (var file in filePaths)
                 idleSprites.Add(LoadImage(file));

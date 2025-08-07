@@ -1,28 +1,23 @@
 Today:
-Figure out if you're going with one large monitor or selecting monitors.
-If you select a monitor you're probably gonna have a contingency plan in place where it just automatically goes with what's available.
-More organizing. 
-
 ++ + * - -- buttons for size and such
-Aspect Ratio scaling
-The logic will probably be something like... when you load in a new image stretch everything to the aspect ratio of the first image loaded
 
-Make it so that right when you start up the app it reads everything it needs to. The FPS and all that jazz is updated
+Textbox overhaul:
+Sprite editor maybe?
+Image as textbox option
+Probably need seperate textbox edit window, will probably have to move some stuff over
+Font picker
+Font size
+Font color?
+Text Orientation
+Still need to adjust max width of textbox
+Editor where you can adjust the wraparound in real time
 
-Ability to press enter to input.
 
-Some notes (might contain stuff you've already finished, go through it):
+It's important that at some point in the future you switch over to profiles and states and such. No hardcoded talking sprites. Just a bunch of saved idles that can be made into talking sprites and also saved. That's when you make them interact with each other
 
 
-I think I'm gonna need it to lock to a specific display. soon
+Some sort of indicator that I'm typing?
 
-I wonder if there's something that can quickly divy out your functions so it's less cluttered.
-
-A universal frame incrementer! So that the idle frame never goes off sync!
-
-Ask Nick about detecting malicious software
-
-Unfortunately I think you're gonna have to do some text box adjustments first...
 
 Have it select from your PCs font list?
 
@@ -30,18 +25,14 @@ Maybe some sound stuff?
 
 "At the 5ms mark hit the downbeat"
 
-After figuring out file integration with OBS and that whole mess. Saving downbeat data and regular/half-time/quarter-time to each preset!
+Saving downbeat data and regular/half-time/quarter-time to each preset!
 
-If that seems hard doing the tap to create tempo integrated in with the start from downbeat feature could be a quick fix for the moment. unless that's hard two...
+tap to create tempo integrated in with the start from downbeat feature
 
 Shrimple debug mode where it displays the sprite number to the right of the gif
 
 
-Adjust character width and height through manual numbers
-
-Making a sprite load in at the proper size and aspect ratio scaling.
-
-Making sure that the default looping dance doesn't desync at any point. If another animation plays it still keeps track of what frame it should be on.
+Making sure that the default looping dance doesn't desync at any point. If another animation plays it still keeps track of what frame it should be on. A universal frame incrementer. So that the idle frame never goes off sync!
 
 Next is some overhauls to the way mainwindow is displayed
 
@@ -51,7 +42,7 @@ You want to be able to edit it super easily in the ui!
 
 Really just presets. Those seem important. This might be easier now with the whole character and text box positioning thing. You also need to figure out the whole textbox thing. That's a whole can of worms.
 
-Bug where the bpm ion the clickable text box doesn't adjust to the proper displayed bpm on the right
+Ask Nick about detecting malicious software
 
 How to tell when code is written by ChatGPT
 
@@ -59,15 +50,11 @@ Bonzi Buddy research
 
 Professor Helper
 
-Some sort of indicator that I'm typing?
-
-Changing size
-
 Make the font and textbox look even more like hypnospace
 
 Multiple idle animations
 
-Deformatting enters?
+Deformatting enters? Like when copy and pasting?
 
 Sprite editor like what you made for gamemaker
 

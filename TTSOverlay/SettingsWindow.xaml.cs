@@ -1,11 +1,8 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.IO;
 using System.Linq;
 using System.Windows;
-using TTSOverlay;
-
-
+using System.Windows.Input;
 
 namespace TTSOverlay
 {
@@ -49,6 +46,7 @@ namespace TTSOverlay
 
         private string[] PromptForImages()
         {
+
             var dialog = new OpenFileDialog
             {
                 Multiselect = true,
@@ -78,6 +76,7 @@ namespace TTSOverlay
                 mainWindow.ResetToDownbeat();
             }
         }
+
 
 
     }
