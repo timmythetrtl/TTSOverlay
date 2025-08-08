@@ -63,12 +63,11 @@ namespace TTSOverlay
                 if (string.IsNullOrEmpty(text))
                     return;
 
-                // Only a single integer (optionally with whitespace)
+                // Only a single integer 
                 if (Regex.IsMatch(text, @"^\d+$"))
                 {
                     if (int.TryParse(text, out int bpmValue) && bpmValue > 0)
                     {
-                        // Must marshal to UI thread because view model likely bound to UI
                         _uiDispatcher.Invoke(() =>
                         {
                             if (_viewModel.IsBpmMode)
@@ -77,7 +76,6 @@ namespace TTSOverlay
                                 if (Math.Abs(_viewModel.InputBPM - bpmValue) > 0.001)
                                 {
                                     _viewModel.InputBPM = bpmValue;
-                                    // SpriteFPS will auto-adjust because of your existing logic in InputBPM setter
                                 }
                             }
                         });
@@ -87,7 +85,7 @@ namespace TTSOverlay
             }
             catch
             {
-                // swallow; we don't want to crash just because notepad file is malformed
+                // swallow
             }
         }
 

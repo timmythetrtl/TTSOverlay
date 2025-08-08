@@ -70,6 +70,7 @@
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SpriteGroup.cs" />
     <Compile Include="TtsManager.cs" />
     <Compile Include="SpriteManager.cs" />
     <Page Include="InputWindow.xaml">
@@ -109,6 +110,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <Resource Include="Fonts\munro-small.ttf" />
     <Resource Include="Fonts\munro-narrow.ttf" />

@@ -13,8 +13,6 @@ namespace TTSOverlay
         private int idleFrameIndex = 0;
         private int talkingFrameIndex = 0;
 
-        private MainWindow mainWindow;
-
         public BitmapImage CurrentSprite => IsSpeaking
             ? GetTalkingFrame()
             : GetIdleFrame();

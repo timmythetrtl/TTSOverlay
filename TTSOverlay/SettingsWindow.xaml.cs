@@ -15,7 +15,7 @@ namespace TTSOverlay
         public SettingsWindow(AppViewModel viewModel)
         {
             InitializeComponent();
-            this.viewModel = viewModel; // <-- add this line
+            this.viewModel = viewModel;
             DataContext = viewModel;
             mainWindow = (MainWindow)Application.Current.MainWindow;
 

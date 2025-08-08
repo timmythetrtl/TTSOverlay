@@ -58,16 +58,20 @@ namespace TTSOverlay
             Left = allScreensBounds.Left;
             Top = allScreensBounds.Top;
             Width = allScreensBounds.Width;
-            Height = allScreensBounds.Height;  
+            Height = allScreensBounds.Height;
 
-            //Load Idle and talking sprites
-            spriteManager.LoadIdleSprites(Directory.GetFiles("Assets/Idle", "*.png"));
-            spriteManager.LoadTalkingSprites(Directory.GetFiles("Assets/Talking", "*.png"));
 
+            //spriteManager.LoadIdleSprites(Directory.GetFiles("Assets/Idle", "*.png"));
+            //spriteManager.LoadTalkingSprites(Directory.GetFiles("Assets/Talking", "*.png"));
+
+            //Load Idle and talking 
+            _viewModel.AddFirstGroup();
             _viewModel.IdleSpriteCount = (Directory.GetFiles("Assets/Idle", "*.png").Length);
 
 
-            CharacterImage.Source = spriteManager.CurrentSprite;
+            //CharacterImage.Source = spriteManager.CurrentSprite;
+
+            CharacterImage.Source = _viewModel.SpriteGroups[0].CurrentFrame;
 
 
 
@@ -86,7 +90,8 @@ namespace TTSOverlay
 
 
             // Text to speech stuff
-            ttsManager = new TtsManager(spriteManager, SpeechText);
+            // So it's looking like this is something that you'll have to update EVERYTIME SpriteGroups is called
+            ttsManager = new TtsManager(_viewModel.SpriteGroups[0], SpeechText);
 
             Loaded += (s, e) =>
             {
@@ -128,7 +133,7 @@ namespace TTSOverlay
 
             while (accumulatedMs >= interval)
             {
-                CharacterImage.Source = spriteManager.AdvanceFrame();
+                CharacterImage.Source = _viewModel.SpriteGroups[0].AdvanceFrame();
                 accumulatedMs -= interval;
             }
         }
@@ -169,29 +174,28 @@ namespace TTSOverlay
         }
         public int GetCurrentFrameIndex()
         {
-            return spriteManager.GetCurrentFrameIndex();
+            return _viewModel.SpriteGroups[0].GetCurrentFrameIndex();
         }
 
         public void LoadIdleSprites(string[] files)
         {
 
-            spriteManager.LoadIdleSprites(files);
-            CharacterImage.Source = spriteManager.CurrentSprite;
-            _viewModel.IdleSpriteCount = files.Length;
+            _viewModel.SpriteGroups[0].LoadIdleSprites(files);
+            CharacterImage.Source = _viewModel.SpriteGroups[0].CurrentFrame; _viewModel.IdleSpriteCount = files.Length;
             if (files.Length > 0)
                 AdjustCharacterHeightToAspect(files[0]);
         }
 
         public void LoadTalkingSprites(string[] files)
         {
-            spriteManager.LoadTalkingSprites(files);
+            _viewModel.SpriteGroups[0].LoadTalkingSprites(files);
             if (files.Length > 0)
                 AdjustCharacterHeightToAspect(files[0]);
         }
 
         public void ResetToDownbeat()
         {
-            spriteManager.ResetToDownbeat(_viewModel.DownbeatFrameIndex);
+            _viewModel.SpriteGroups[0].ResetToDownbeat(_viewModel.DownbeatFrameIndex);
         }
 
         private void AdjustCharacterHeightToAspect(string imagePath)
@@ -216,7 +220,7 @@ namespace TTSOverlay
                 case 9003: TriggerRandomLineFromFile("Assets/Hotkeys/f3.txt"); break;
                 case 9004: TriggerRandomLineFromFile("Assets/Hotkeys/f4.txt"); break;
                 case 9005: TriggerRandomLineFromFile("Assets/Hotkeys/f5.txt"); break;
-                case 9006: spriteManager.ResetToDownbeat(_viewModel.DownbeatFrameIndex); break;
+                case 9006: _viewModel.SpriteGroups[0].ResetToDownbeat(_viewModel.DownbeatFrameIndex); break;
             }
         }
         public void FocusWindowHotKey()
@@ -298,9 +302,7 @@ namespace TTSOverlay
                     }
                     catch (Exception ex)
                     {
-                        // Log or handle exceptions inside the listener loop
-                        // Example: ignore and continue
-                        // Or you can log somewhere for debugging
+                        
                     }
                 }
             });

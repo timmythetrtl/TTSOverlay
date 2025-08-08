@@ -11,12 +11,13 @@ namespace TTSOverlay
         private readonly SpeechSynthesizer _synth;
         private readonly Queue<string> _messageQueue = new Queue<string>();
         private readonly SpriteManager _spriteManager;
+        private readonly SpriteGroup _spriteGroup;
         private readonly TextBlock _speechText;
 
-        public TtsManager(SpriteManager spriteManager, TextBlock speechText)
+        public TtsManager(SpriteGroup spriteGroup, TextBlock speechText)
 
         {
-            _spriteManager = spriteManager;
+            _spriteGroup = spriteGroup;
             _speechText = speechText;
 
             _synth = new SpeechSynthesizer();
@@ -31,7 +32,7 @@ namespace TTSOverlay
 
         private void TrySpeakNextMessage()
         {
-            if (_spriteManager.IsSpeaking || _messageQueue.Count == 0)
+            if (_spriteGroup.IsSpeaking || _messageQueue.Count == 0)
                 return;
 
             string nextMessage = _messageQueue.Dequeue();
@@ -42,7 +43,7 @@ namespace TTSOverlay
         {
             _speechText.Text = text;
             _speechText.Visibility = Visibility.Visible;
-            _spriteManager.SetSpeakingState(true);
+            _spriteGroup.IsSpeaking = true;
 
             // Set voice
             if (ContainsJapanese(text))
@@ -69,7 +70,7 @@ namespace TTSOverlay
             Application.Current.Dispatcher.Invoke(() =>
             {
                 _speechText.Visibility = Visibility.Collapsed;
-                _spriteManager.SetSpeakingState(false);
+                _spriteGroup.IsSpeaking = false;
                 TrySpeakNextMessage(); // Call internal method instead of external callback
             });
         }

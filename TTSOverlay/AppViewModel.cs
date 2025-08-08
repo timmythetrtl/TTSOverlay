@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows.Data;
 using System.Windows.Forms;
@@ -29,10 +31,13 @@ namespace TTSOverlay
 
     public class AppViewModel : INotifyPropertyChanged
     {
+
+
         private double _characterX, _characterY, _characterWidth = 150, _characterHeight = 250;
         private double _speechX, _speechY, _speechFontSize = 40, _speechMaxWidth = 500;
 
         private bool _isUpdatingCharacterSize = false;
+
 
         public double CharacterX { get => _characterX; set { _characterX = value; OnPropertyChanged(nameof(CharacterX)); } }
         public double CharacterY { get => _characterY; set { _characterY = value; OnPropertyChanged(nameof(CharacterY)); } }
@@ -199,7 +204,7 @@ namespace TTSOverlay
         public bool IsAspectRatioScalingMode
         {
             get => _isAspectRatioScalingMode;
-            set
+            set 
             {
                 _isAspectRatioScalingMode = value;
                 OnPropertyChanged(nameof(IsAspectRatioScalingMode));
@@ -291,12 +296,27 @@ namespace TTSOverlay
             }
         }
 
+        public ObservableCollection<SpriteGroup> SpriteGroups { get; set; } = new ObservableCollection<SpriteGroup>();
 
+        //This one is JUST for the first one. That's why the sprite group is zero
+        public void AddFirstGroup()
+        {
+            SpriteGroups.Add(new SpriteGroup
+            {
+                //Try to make this add all of the variables. Update in real time, OnPropertyChanged -- change it for currently active SpriteGroup within the SpriteGroup class!!
+                X = 100,
+                Y = 100,
+                Width = 100,
+                Height = 100,
+                Name = "Placeholder",
+                
+            });
+            SpriteGroups[0].LoadIdleSprites(Directory.GetFiles("Assets/Idle", "*.png"));
+            SpriteGroups[0].LoadTalkingSprites(Directory.GetFiles("Assets/Talking", "*.png"));
+        }
 
-
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
+        // INotifyPropertyChanged implementation
+        public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
